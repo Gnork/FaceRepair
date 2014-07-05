@@ -1,0 +1,7 @@
+x64
+FaceRepair/x64
+Debug
+FaceRepair/Debug
+Release
+FaceRepair/Release
+*.opensdf
