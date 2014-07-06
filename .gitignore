@@ -5,3 +5,5 @@ FaceRepair/Debug
 Release
 FaceRepair/Release
 *.opensdf
+*.sdf
+*.v12.suo
