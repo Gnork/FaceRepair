@@ -10,7 +10,7 @@ WebcamHandler::WebcamHandler(int frameWidth, int frameHeight, int edgeLength, in
 	m_processing = false;
 
 	m_edgeLength = edgeLength;
-	m_facePositionOffset = facePositionOffset;
+	m_faceAreaOffset = facePositionOffset;
 	m_frameWidth = frameWidth;
 	m_frameHeight = frameHeight;
 
@@ -18,10 +18,10 @@ WebcamHandler::WebcamHandler(int frameWidth, int frameHeight, int edgeLength, in
 	int fpWidth = fpHeight;
 	int fpX = (m_frameWidth - fpWidth) / 2;
 	int fpY = (m_frameHeight - fpHeight) / 2;
-	m_facePosition = Rect(fpX, fpY, fpWidth, fpHeight);
+	m_faceArea = Rect(fpX, fpY, fpWidth, fpHeight);
 
 	m_reconstructionArea = Rect(0, 0, edgeLength / 2, edgeLength);
-	m_drawableReconstructionArea = scaleAndPositionReconstructionArea(&m_reconstructionArea, &m_facePosition, m_edgeLength);
+	m_drawableReconstructionArea = scaleAndPositionReconstructionArea(&m_reconstructionArea, &m_faceArea, m_edgeLength);
 }
 
 
@@ -50,14 +50,22 @@ void WebcamHandler::run()
 		flip(frame, frame, 1);
 
 		// take subregion at facePosition
-		Mat subregion = frame(m_facePosition);
+		Mat subregion = frame(m_faceArea);
 
 		// copy region to seperate image
 		Mat subimage;
 		subregion.copyTo(subimage);
 
+		// scale to rbm input size
+		Mat scaledSubimage;
+		Size size = Size(m_edgeLength, m_edgeLength);
+		resize(subimage, scaledSubimage, size, 0.0, 0.0, INTER_CUBIC);
+
+		// calc mean rgb of preserved area
+		Scalar rgb = calcRgbMeanOfPreservedArea(&scaledSubimage, &m_reconstructionArea);
+
 		// draw rect at facePosition
-		rectangle(frame, m_facePosition, Scalar(0, 255, 0), 1, 8, 0);
+		rectangle(frame, m_faceArea, Scalar(0, 255, 0), 1, 8, 0);
 		rectangle(frame, m_drawableReconstructionArea, Scalar(0, 0, 255), 1, 8, 0);
 
 		// show images
@@ -114,42 +122,42 @@ void WebcamHandler::checkKeys()
 			decreaseHeightReconstructionArea(); break;
 	}
 
-	m_drawableReconstructionArea = scaleAndPositionReconstructionArea(&m_reconstructionArea, &m_facePosition, m_edgeLength);
+	m_drawableReconstructionArea = scaleAndPositionReconstructionArea(&m_reconstructionArea, &m_faceArea, m_edgeLength);
 }
 
 void WebcamHandler::moveLeftFacePosition()
 {
-	m_facePosition.x = max(m_facePosition.x - m_facePositionOffset, 0);
+	m_faceArea.x = max(m_faceArea.x - m_faceAreaOffset, 0);
 }
 
 void WebcamHandler::moveUpFacePosition()
 {
-	m_facePosition.y = max(m_facePosition.y - m_facePositionOffset, 0);
+	m_faceArea.y = max(m_faceArea.y - m_faceAreaOffset, 0);
 }
 
 void WebcamHandler::moveRightFacePosition()
 {
-	m_facePosition.x = min(m_facePosition.x + m_facePositionOffset, m_frameWidth - m_facePosition.width);
+	m_faceArea.x = min(m_faceArea.x + m_faceAreaOffset, m_frameWidth - m_faceArea.width);
 }
 
 void WebcamHandler::moveDownFacePosition()
 {
-	m_facePosition.y = min(m_facePosition.y + m_facePositionOffset, m_frameHeight - m_facePosition.height);
+	m_faceArea.y = min(m_faceArea.y + m_faceAreaOffset, m_frameHeight - m_faceArea.height);
 }
 
 void WebcamHandler::decreaseFaceSize()
 {
-	m_facePosition.width = max(m_edgeLength, m_facePosition.width - m_facePositionOffset);
-	m_facePosition.height = m_facePosition.width;
+	m_faceArea.width = max(m_edgeLength, m_faceArea.width - m_faceAreaOffset);
+	m_faceArea.height = m_faceArea.width;
 }
 
 void WebcamHandler::increaseFaceSize()
 {
-	int edge = m_facePosition.width + m_facePositionOffset;
-	if (m_facePosition.x + edge <= m_frameWidth && m_facePosition.y + edge <= m_frameHeight)
+	int edge = m_faceArea.width + m_faceAreaOffset;
+	if (m_faceArea.x + edge <= m_frameWidth && m_faceArea.y + edge <= m_frameHeight)
 	{
-		m_facePosition.width = edge;
-		m_facePosition.height = edge;
+		m_faceArea.width = edge;
+		m_faceArea.height = edge;
 	}
 }
 

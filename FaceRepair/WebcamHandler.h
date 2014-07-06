@@ -3,6 +3,9 @@
 #include <iostream>
 #include <algorithm>
 #include "ProcessingUtils.h"
+#include "opencv2\opencv.hpp"
+
+using namespace cv;
 
 class WebcamHandler
 {
@@ -17,11 +20,11 @@ private:
 
 	int m_frameWidth;
 	int m_frameHeight;
-	int m_facePositionOffset;
+	int m_faceAreaOffset;
 	int m_edgeLength;
-	cv::Rect m_facePosition;
-	cv::Rect m_reconstructionArea;
-	cv::Rect m_drawableReconstructionArea;
+	Rect m_faceArea;
+	Rect m_reconstructionArea;
+	Rect m_drawableReconstructionArea;
 
 	void checkKeys();
 
