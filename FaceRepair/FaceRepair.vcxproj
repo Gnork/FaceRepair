@@ -128,9 +128,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="ApplicationMain.cpp" />
+    <ClCompile Include="ProcessingUtils.cpp" />
     <ClCompile Include="WebcamHandler.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ProcessingUtils.h" />
     <ClInclude Include="WebcamHandler.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

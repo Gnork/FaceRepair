@@ -21,9 +21,15 @@
     <ClCompile Include="WebcamHandler.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="ProcessingUtils.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="WebcamHandler.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="ProcessingUtils.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>

@@ -2,14 +2,15 @@
 
 using namespace std;
 using namespace cv;
+using namespace ProcessingUtils;
 
 WebcamHandler::WebcamHandler(int frameWidth, int frameHeight, int edgeLength, int facePositionOffset)
 {
 	m_loop = true;
+	m_processing = false;
+
 	m_edgeLength = edgeLength;
-
 	m_facePositionOffset = facePositionOffset;
-
 	m_frameWidth = frameWidth;
 	m_frameHeight = frameHeight;
 
@@ -18,6 +19,9 @@ WebcamHandler::WebcamHandler(int frameWidth, int frameHeight, int edgeLength, in
 	int fpX = (m_frameWidth - fpWidth) / 2;
 	int fpY = (m_frameHeight - fpHeight) / 2;
 	m_facePosition = Rect(fpX, fpY, fpWidth, fpHeight);
+
+	m_reconstructionArea = Rect(0, 0, edgeLength / 2, edgeLength);
+	m_drawableReconstructionArea = scaleAndPositionReconstructionArea(&m_reconstructionArea, &m_facePosition, m_edgeLength);
 }
 
 
@@ -54,6 +58,7 @@ void WebcamHandler::run()
 
 		// draw rect at facePosition
 		rectangle(frame, m_facePosition, Scalar(0, 255, 0), 1, 8, 0);
+		rectangle(frame, m_drawableReconstructionArea, Scalar(0, 0, 255), 1, 8, 0);
 
 		// show images
 		imshow("Original", frame);
@@ -69,12 +74,16 @@ void WebcamHandler::run()
 void WebcamHandler::checkKeys()
 {
 	int key = cvWaitKey(1);
-	if(key != -1) cout << key << endl;
+	if (key == -1) return;
+	
+	cout << key << endl;
 
 	switch (key)
 	{
 		case 27: // escape
 			m_loop = false; break; // terminate programm
+		case 13: // enter
+			m_processing = !m_processing; break; // turn processing on/off
 		case 2424832: // left arrow
 			moveLeftFacePosition(); break;
 		case 2490368: // up arrow
@@ -87,7 +96,25 @@ void WebcamHandler::checkKeys()
 			decreaseFaceSize(); break;
 		case 109: // m
 			increaseFaceSize(); break;
+		case 97: // a
+			moveLeftReconstructionArea(); break;
+		case 119: // w
+			moveUpReconstructionArea(); break;
+		case 100: // d
+			moveRightReconstructionArea(); break;
+		case 115: // s
+			moveDownReconstructionArea(); break;
+		case 102: // f
+			decreaseWidthReconstructionArea(); break;
+		case 116: // t
+			increaseHeightReconstructionArea(); break;
+		case 104: // h
+			increaseWidthReconstructionArea(); break;
+		case 103: // g
+			decreaseHeightReconstructionArea(); break;
 	}
+
+	m_drawableReconstructionArea = scaleAndPositionReconstructionArea(&m_reconstructionArea, &m_facePosition, m_edgeLength);
 }
 
 void WebcamHandler::moveLeftFacePosition()
@@ -124,4 +151,44 @@ void WebcamHandler::increaseFaceSize()
 		m_facePosition.width = edge;
 		m_facePosition.height = edge;
 	}
+}
+
+void WebcamHandler::moveLeftReconstructionArea(){
+	m_reconstructionArea.x = max(0, m_reconstructionArea.x - 1);
+}
+
+void WebcamHandler::moveUpReconstructionArea(){
+	m_reconstructionArea.y = max(0, m_reconstructionArea.y - 1);
+}
+
+void WebcamHandler::moveRightReconstructionArea(){
+	m_reconstructionArea.x = min(m_reconstructionArea.x + 1, m_edgeLength - m_reconstructionArea.width);
+}
+
+void WebcamHandler::moveDownReconstructionArea(){
+	m_reconstructionArea.y = min(m_reconstructionArea.y + 1, m_edgeLength - m_reconstructionArea.height);
+}
+
+void WebcamHandler::increaseHeightReconstructionArea(){
+	int height = m_reconstructionArea.height + 1;
+	if (m_reconstructionArea.y + height <= m_edgeLength)
+	{
+		m_reconstructionArea.height = height;
+	}
+}
+
+void WebcamHandler::decreaseHeightReconstructionArea(){
+	m_reconstructionArea.height = max(m_reconstructionArea.height - 1, 4);
+}
+
+void WebcamHandler::increaseWidthReconstructionArea(){
+	int width = m_reconstructionArea.width + 1;
+	if (m_reconstructionArea.x + width <= m_edgeLength)
+	{
+		m_reconstructionArea.width = width;
+	}
+}
+
+void WebcamHandler::decreaseWidthReconstructionArea(){
+	m_reconstructionArea.width = max(m_reconstructionArea.width - 1, 4);
 }
