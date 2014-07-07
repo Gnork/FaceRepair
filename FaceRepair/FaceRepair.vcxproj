@@ -84,12 +84,14 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(OPENCV_DIR)\..\..\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(OPENCV_DIR)\..\..\include;$(OPENBLAS_DIR)\include</AdditionalIncludeDirectories>
+      <OpenMPSupport>true</OpenMPSupport>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(OPENCV_DIR)\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opencv_flann249d.lib;opencv_legacy249d.lib;opencv_contrib249d.lib;opencv_objdetect249d.lib;opencv_calib3d249d.lib;opencv_features2d249d.lib;opencv_video249d.lib;opencv_ml249d.lib;opencv_highgui249d.lib;opencv_imgproc249d.lib;opencv_core249d.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(OPENCV_DIR)\lib;$(OPENBLAS_DIR)\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libopenblas.lib;opencv_flann249d.lib;opencv_legacy249d.lib;opencv_contrib249d.lib;opencv_objdetect249d.lib;opencv_calib3d249d.lib;opencv_features2d249d.lib;opencv_video249d.lib;opencv_ml249d.lib;opencv_highgui249d.lib;opencv_imgproc249d.lib;opencv_core249d.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -116,14 +118,15 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(OPENCV_DIR)\..\..\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(OPENCV_DIR)\..\..\include;$(OPENBLAS_DIR)\include</AdditionalIncludeDirectories>
+      <OpenMPSupport>true</OpenMPSupport>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>$(OPENCV_DIR)\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opencv_flann249.lib;opencv_legacy249.lib;opencv_contrib249.lib;opencv_objdetect249.lib;opencv_calib3d249.lib;opencv_video249.lib;opencv_ml249.lib;opencv_highgui249.lib;opencv_imgproc249.lib;opencv_core249.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(OPENCV_DIR)\lib;$(OPENBLAS_DIR)\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libopenblas.lib;opencv_flann249.lib;opencv_legacy249.lib;opencv_contrib249.lib;opencv_objdetect249.lib;opencv_calib3d249.lib;opencv_video249.lib;opencv_ml249.lib;opencv_highgui249.lib;opencv_imgproc249.lib;opencv_core249.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -133,6 +136,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ProcessingUtils.h" />
+    <ClInclude Include="RBM.h" />
     <ClInclude Include="WebcamHandler.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -4,7 +4,7 @@ using namespace cv;
 using namespace std;
 
 namespace ProcessingUtils{
-	Rect scaleAndPositionReconstructionArea(Rect* reconstructionArea, Rect* facePosition, int edgeLength)
+	void scaleAndPositionReconstructionArea(Rect* reconstructionArea, Rect* facePosition, Rect* output, int edgeLength)
 	{
 		float factor = (float)facePosition->width / (float)edgeLength;
 		int x = (int)(reconstructionArea->x * factor) + facePosition->x;
@@ -12,7 +12,10 @@ namespace ProcessingUtils{
 		int width = (int)(reconstructionArea->width * factor);
 		int height = (int)(reconstructionArea->height * factor);
 
-		return Rect(x, y, width, height);
+		output->x = x;
+		output->y = y;
+		output->width = width;
+		output->height = height;
 	}
 
 	Vec3b calcRgbMeanOfPreservedArea(Mat* scaledSubimage, Rect* reconstructionArea)
@@ -50,7 +53,7 @@ namespace ProcessingUtils{
 		g /= numOfPixels;
 		b /= numOfPixels;
 
-		return Vec3b(b, g, r);
+		return Vec3b((uchar)b, (uchar)g, (uchar)r);
 	}
 
 	void setRgbMeanInReconstructionArea(Mat* scaledSubimage, Rect* reconstructionArea, Vec3b* rgb)

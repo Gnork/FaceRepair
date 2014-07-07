@@ -22,9 +22,9 @@ private:
 	int m_frameHeight;
 	int m_faceAreaOffset;
 	int m_edgeLength;
-	Rect m_faceArea;
-	Rect m_reconstructionArea;
-	Rect m_drawableReconstructionArea;
+	Rect* m_faceArea;
+	Rect* m_reconstructionArea;
+	Rect* m_drawableReconstructionArea;
 
 	void checkKeys();
 
