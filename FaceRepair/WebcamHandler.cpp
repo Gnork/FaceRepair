@@ -32,9 +32,9 @@ WebcamHandler::~WebcamHandler()
 void WebcamHandler::run()
 {
 	// initialize webcam
-	CvCapture* capture = cvCreateCameraCapture(0);
-	cvSetCaptureProperty(capture, CV_CAP_PROP_FRAME_WIDTH, m_frameWidth);
-	cvSetCaptureProperty(capture, CV_CAP_PROP_FRAME_HEIGHT, m_frameHeight);
+	VideoCapture cap = VideoCapture(0);
+	cap.set(CV_CAP_PROP_FRAME_WIDTH, m_frameWidth);
+	cap.set(CV_CAP_PROP_FRAME_HEIGHT, m_frameHeight);
 
 	// initialize windows
 	namedWindow("Original", CV_WINDOW_AUTOSIZE); 
@@ -44,7 +44,7 @@ void WebcamHandler::run()
 	{
 		// read frame and continue with next frame if not successfull
 		Mat frame;
-		frame = cvRetrieveFrame(capture, 0);
+		cap.retrieve(frame);
 
 		// flip frame
 		flip(frame, frame, 1);
@@ -62,9 +62,19 @@ void WebcamHandler::run()
 		resize(subimage, scaledSubimage, size, 0.0, 0.0, INTER_CUBIC);
 
 		// calc mean rgb of preserved area
-		Scalar rgb = calcRgbMeanOfPreservedArea(&scaledSubimage, &m_reconstructionArea);
+		Vec3b rgb = calcRgbMeanOfPreservedArea(&scaledSubimage, &m_reconstructionArea);
 
-		// draw rect at facePosition
+		// set mean rgb at reconstructionArea
+		setRgbMeanInReconstructionArea(&scaledSubimage, &m_reconstructionArea, &rgb);
+
+		// process rbm
+		// todo
+
+		// scale to original faceArea size
+		size = Size(m_faceArea.width, m_faceArea.height);
+		resize(scaledSubimage, subimage, size, 0.0, 0.0, INTER_CUBIC);
+
+		// draw rects at faceArea and reconstructionArea
 		rectangle(frame, m_faceArea, Scalar(0, 255, 0), 1, 8, 0);
 		rectangle(frame, m_drawableReconstructionArea, Scalar(0, 0, 255), 1, 8, 0);
 
@@ -76,7 +86,7 @@ void WebcamHandler::run()
 		checkKeys();
 	}
 	// terminate webcam
-	cvReleaseCapture(&capture);
+	cap.release();
 }
 
 void WebcamHandler::checkKeys()

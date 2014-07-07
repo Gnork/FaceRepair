@@ -10,7 +10,7 @@ using namespace cv;
 class WebcamHandler
 {
 public:
-	WebcamHandler(int, int, int, int);
+	WebcamHandler(int frameWidth, int frameHeight, int edgeLength, int facePositionOffset);
 	~WebcamHandler();
 	void run();	
 
