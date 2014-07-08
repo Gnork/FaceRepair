@@ -5,9 +5,13 @@
 #include <iostream>
 
 using namespace cv;
+using namespace std;
 
-namespace ProcessingUtils{
+namespace ProcessingUtils
+{
 	void scaleAndPositionReconstructionArea(Rect* reconstructionArea, Rect* facePosition, Rect* output, int edgeLength);
 	Vec3b calcRgbMeanOfPreservedArea(Mat* scaledSubimage, Rect* reconstructionArea);
 	void setRgbMeanInReconstructionArea(Mat* scaledSubimage, Rect* reconstructionArea, Vec3b* rgb);
+	float* matToNormalizedFloatArrayWithBias(Mat* image);
+	void normalizedFloatArrayToMatWithoutBias(Mat* image, float* input);
 }

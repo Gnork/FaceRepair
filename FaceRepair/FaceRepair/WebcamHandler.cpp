@@ -1,10 +1,6 @@
 #include "WebcamHandler.h"
 
-using namespace std;
-using namespace cv;
-using namespace ProcessingUtils;
-
-WebcamHandler::WebcamHandler(int frameWidth, int frameHeight, int edgeLength, int facePositionOffset)
+WebcamHandler::WebcamHandler(int frameWidth, int frameHeight, int edgeLength, int facePositionOffset, int threads)
 {
 	m_loop = true;
 	m_processing = false;
@@ -23,6 +19,8 @@ WebcamHandler::WebcamHandler(int frameWidth, int frameHeight, int edgeLength, in
 	m_reconstructionArea = new Rect(0, 0, edgeLength / 2, edgeLength);
 	m_drawableReconstructionArea = new Rect();
 	scaleAndPositionReconstructionArea(m_reconstructionArea, m_faceArea, m_drawableReconstructionArea, m_edgeLength);
+
+	m_rbm1 = initializeRBM("weights/WildFaces_64x64_rgb_1kh_27380it.out", threads);
 }
 
 
@@ -43,6 +41,10 @@ void WebcamHandler::run()
 	// initialize windows
 	namedWindow("Original", CV_WINDOW_AUTOSIZE); 
 	namedWindow("Reconstruction", CV_WINDOW_AUTOSIZE);
+
+	float* data;
+	float* hidden;
+	float* visible;
 
 	while (m_loop)
 	{
@@ -71,8 +73,15 @@ void WebcamHandler::run()
 		// set mean rgb at reconstructionArea
 		setRgbMeanInReconstructionArea(&scaledSubimage, m_reconstructionArea, &rgb);
 
+		// subimage to normalized float array
+		data = matToNormalizedFloatArrayWithBias(&scaledSubimage);
+
 		// process rbm
-		// todo
+		hidden = m_rbm1->runHidden(data, scaledSubimage.rows);
+		visible = m_rbm1->runVisible(hidden, scaledSubimage.rows);
+
+		// normalized float array to subimage
+		normalizedFloatArrayToMatWithoutBias(&scaledSubimage, visible);
 
 		// scale to original faceArea size
 		size = Size(m_faceArea->width, m_faceArea->height);
@@ -88,6 +97,10 @@ void WebcamHandler::run()
 
 		// check keyboard input
 		checkKeys();
+
+		delete hidden;
+		delete visible;
+		delete data;
 	}
 	// terminate webcam
 	cap.release();

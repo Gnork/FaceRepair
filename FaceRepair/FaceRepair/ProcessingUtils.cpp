@@ -1,9 +1,7 @@
 #include "ProcessingUtils.h"
 
-using namespace cv;
-using namespace std;
-
-namespace ProcessingUtils{
+namespace ProcessingUtils
+{
 	void scaleAndPositionReconstructionArea(Rect* reconstructionArea, Rect* facePosition, Rect* output, int edgeLength)
 	{
 		float factor = (float)facePosition->width / (float)edgeLength;
@@ -66,6 +64,49 @@ namespace ProcessingUtils{
 		for (int col = x1; col < x2; ++col) {
 			for (int row = y1; row < y2; ++row) {
 				scaledSubimage->at<Vec3b>(row, col) = *rgb;
+			}
+		}
+	}
+
+	float* matToNormalizedFloatArrayWithBias(Mat* image)
+	{
+		int rows = image->rows;
+		int cols = image->cols;
+
+		int size = cols * rows * 3 + rows;
+		float* output = new float[size];
+
+		int pos = 0;
+
+		for (; pos < rows; ++pos){
+			output[pos] = 1;
+		}
+
+		for (int col = 0; col < cols; ++col) {
+			for (int row = 0; row < rows; ++row) {
+				Vec3b rgb = image->at<Vec3b>(row, col);
+				output[pos++] = (float)(rgb[2] / 255.0);
+				output[pos++] = (float)(rgb[1] / 255.0);
+				output[pos++] = (float)(rgb[0] / 255.0);
+			}
+		}
+		return output;
+	}
+
+	void normalizedFloatArrayToMatWithoutBias(Mat* image, float* input){
+		int rows = image->rows;
+		int cols = image->cols;
+
+		int pos = rows;
+		cout << pos << endl;
+
+		for (int col = 0; col < cols; ++col) {
+			for (int row = 0; row < rows; ++row) {
+				int r = (int)(input[pos++] * 255.0);
+				int g = (int)(input[pos++] * 255.0);
+				int b = (int)(input[pos++] * 255.0);
+				Vec3b rgb = Vec3b(b, g, r);
+				image->at<Vec3b>(row, col) = rgb;
 			}
 		}
 	}

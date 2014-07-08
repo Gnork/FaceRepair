@@ -3,14 +3,19 @@
 #include <iostream>
 #include <algorithm>
 #include "ProcessingUtils.h"
+#include "RBMUtils.h"
 #include "opencv2\opencv.hpp"
+#include "RBM.h"
 
+using namespace std;
 using namespace cv;
+using namespace ProcessingUtils;
+using namespace RBMUtils;
 
 class WebcamHandler
 {
 public:
-	WebcamHandler(int frameWidth, int frameHeight, int edgeLength, int facePositionOffset);
+	WebcamHandler(int frameWidth, int frameHeight, int edgeLength, int facePositionOffset, int threads);
 	~WebcamHandler();
 	void run();	
 
@@ -25,6 +30,8 @@ private:
 	Rect* m_faceArea;
 	Rect* m_reconstructionArea;
 	Rect* m_drawableReconstructionArea;
+
+	RBM* m_rbm1;
 
 	void checkKeys();
 
