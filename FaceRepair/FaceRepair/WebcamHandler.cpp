@@ -1,31 +1,32 @@
 #include "WebcamHandler.h"
 
-WebcamHandler::WebcamHandler(int frameWidth, int frameHeight, int edgeLength, int facePositionOffset, int threads)
+WebcamHandler::WebcamHandler(int frameWidth, int frameHeight, int edgeLength, int threads)
 {
 	m_loop = true;
 	m_processing = false;
 
+	m_faceAreaOffset = 8;
+	m_reconstructionAreaOffset = 2;
+
 	m_edgeLength = edgeLength;
-	m_faceAreaOffset = facePositionOffset;
 	m_frameWidth = frameWidth;
 	m_frameHeight = frameHeight;
 	
 	m_webcamWidth = frameWidth / 2;
 	m_webcamHeight = m_frameHeight;
 
-	int faHeight = max(m_edgeLength, m_frameWidth / 2);
+	int faHeight = max(m_edgeLength, m_webcamWidth / 2);
 	int faWidth = faHeight;
-	int faX = (m_frameWidth - faWidth) / 2;
-	int faY = (m_frameHeight - faHeight) / 2;
-	m_faceArea = new Rect(faX, faY, faWidth, faHeight);
+	int faX = (m_webcamWidth - faWidth) / 2;
+	int faY = (m_webcamHeight - faHeight) / 2;
 
-	m_reconstructionArea = new Rect(0, 0, edgeLength / 2, edgeLength);
-	
+	m_faceArea = new Rect(faX, faY, faWidth, faHeight);
+	m_reconstructionArea = new Rect(0, 0, edgeLength / 2, edgeLength);	
 	m_drawableReconstructionArea = new Rect();
 	scaleAndPositionReconstructionArea(m_reconstructionArea, m_faceArea, m_drawableReconstructionArea, m_edgeLength);
-
 	m_scaledReconstructionArea = new Rect();
 	scaleReconstructionArea(m_reconstructionArea, m_faceArea, m_scaledReconstructionArea, m_edgeLength);
+	m_cropArea = new Rect((m_frameWidth - m_webcamWidth) / 2, 0, m_webcamWidth, m_webcamHeight);
 
 	m_rbm1 = initializeRBM("C:\\Users\\christoph\\git\\FaceRepair\\FaceRepair\\weights\\WildFaces_64x64_rgb_1kh_27380it.out", threads);
 }
@@ -47,12 +48,9 @@ void WebcamHandler::run()
 	cap.set(CV_CAP_PROP_FRAME_WIDTH, m_frameWidth);
 	cap.set(CV_CAP_PROP_FRAME_HEIGHT, m_frameHeight);
 
-	// initialize windows
-	namedWindow("Original", CV_WINDOW_AUTOSIZE);
-	namedWindow("Reconstruction", CV_WINDOW_AUTOSIZE);
-
-	//namedWindow("FaceRepair", CV_WINDOW_NORMAL);
-	//cvSetWindowProperty("Original", CV_WND_PROP_FULLSCREEN, CV_WINDOW_FULLSCREEN);
+	// initialize window
+	namedWindow("FaceRepair", CV_WINDOW_NORMAL);
+	cvSetWindowProperty("FaceRepair", CV_WND_PROP_FULLSCREEN, CV_WINDOW_FULLSCREEN);
 
 	float* hidden;
 	float* visible;
@@ -66,8 +64,11 @@ void WebcamHandler::run()
 		// mirror
 		flip(frame, frame, 1);
 
+		// crop frame for splitscreen
+		Mat cropped = frame(*m_cropArea);
+
 		// take subregion at faceArea
-		Mat subregion = frame(*m_faceArea);
+		Mat subregion = cropped(*m_faceArea);
 
 		// copy region to seperate image
 		Mat subimage;
@@ -120,15 +121,14 @@ void WebcamHandler::run()
 		resetScaledPreservedArea(&result, m_scaledReconstructionArea, &subimage);
 
 		// draw rects at faceArea and reconstructionArea
-		rectangle(frame, *m_faceArea, Scalar(0, 255, 0), 1, 8, 0);
-		rectangle(frame, *m_drawableReconstructionArea, Scalar(0, 0, 255), 1, 8, 0);
+		rectangle(cropped, *m_faceArea, Scalar(0, 255, 0), 1, 8, 0);
+		rectangle(cropped, *m_drawableReconstructionArea, Scalar(0, 0, 255), 1, 8, 0);
 
-		//Mat screen = Mat(m_frameWidth, m_frameHeight, CV_8UC3, Scalar(0, 0, 0));
-		//makeSplitscreen(&screen, &frame, &result);
+		Mat screen = Mat(m_frameHeight, m_frameWidth, CV_8UC3, Scalar(0, 0, 0));
+		makeSplitscreen(&screen, &cropped, &result);
 
 		// show images
-		imshow("Original", frame);
-		imshow("Reconstruction", result);
+		imshow("FaceRepair", screen);
 
 		// check keyboard input
 		checkKeys();
@@ -173,11 +173,11 @@ void WebcamHandler::checkKeys()
 		case 102: // f
 			decreaseWidthReconstructionArea(); break;
 		case 116: // t
-			increaseHeightReconstructionArea(); break;
+			decreaseHeightReconstructionArea(); break;
 		case 104: // h
 			increaseWidthReconstructionArea(); break;
-		case 103: // g
-			decreaseHeightReconstructionArea(); break;
+		case 103: // g		
+			increaseHeightReconstructionArea(); break;
 	}
 
 	scaleAndPositionReconstructionArea(m_reconstructionArea, m_faceArea, m_drawableReconstructionArea, m_edgeLength);
@@ -196,12 +196,12 @@ void WebcamHandler::moveUpFacePosition()
 
 void WebcamHandler::moveRightFacePosition()
 {
-	m_faceArea->x = min(m_faceArea->x + m_faceAreaOffset, m_frameWidth - m_faceArea->width);
+	m_faceArea->x = min(m_faceArea->x + m_faceAreaOffset, m_webcamWidth - m_faceArea->width);
 }
 
 void WebcamHandler::moveDownFacePosition()
 {
-	m_faceArea->y = min(m_faceArea->y + m_faceAreaOffset, m_frameHeight - m_faceArea->height);
+	m_faceArea->y = min(m_faceArea->y + m_faceAreaOffset, m_webcamHeight - m_faceArea->height);
 }
 
 void WebcamHandler::decreaseFaceSize()
@@ -213,7 +213,7 @@ void WebcamHandler::decreaseFaceSize()
 void WebcamHandler::increaseFaceSize()
 {
 	int edge = m_faceArea->width + m_faceAreaOffset;
-	if (m_faceArea->x + edge <= m_frameWidth && m_faceArea->y + edge <= m_frameHeight)
+	if (m_faceArea->x + edge <= m_webcamWidth && m_faceArea->y + edge <= m_webcamHeight)
 	{
 		m_faceArea->width = edge;
 		m_faceArea->height = edge;
@@ -221,23 +221,23 @@ void WebcamHandler::increaseFaceSize()
 }
 
 void WebcamHandler::moveLeftReconstructionArea(){
-	m_reconstructionArea->x = max(0, m_reconstructionArea->x - 1);
+	m_reconstructionArea->x = max(0, m_reconstructionArea->x - m_reconstructionAreaOffset);
 }
 
 void WebcamHandler::moveUpReconstructionArea(){
-	m_reconstructionArea->y = max(0, m_reconstructionArea->y - 1);
+	m_reconstructionArea->y = max(0, m_reconstructionArea->y - m_reconstructionAreaOffset);
 }
 
 void WebcamHandler::moveRightReconstructionArea(){
-	m_reconstructionArea->x = min(m_reconstructionArea->x + 1, m_edgeLength - m_reconstructionArea->width);
+	m_reconstructionArea->x = min(m_reconstructionArea->x + m_reconstructionAreaOffset, m_edgeLength - m_reconstructionArea->width);
 }
 
 void WebcamHandler::moveDownReconstructionArea(){
-	m_reconstructionArea->y = min(m_reconstructionArea->y + 1, m_edgeLength - m_reconstructionArea->height);
+	m_reconstructionArea->y = min(m_reconstructionArea->y + m_reconstructionAreaOffset, m_edgeLength - m_reconstructionArea->height);
 }
 
 void WebcamHandler::increaseHeightReconstructionArea(){
-	int height = m_reconstructionArea->height + 1;
+	int height = m_reconstructionArea->height + m_reconstructionAreaOffset;
 	if (m_reconstructionArea->y + height <= m_edgeLength)
 	{
 		m_reconstructionArea->height = height;
@@ -245,11 +245,11 @@ void WebcamHandler::increaseHeightReconstructionArea(){
 }
 
 void WebcamHandler::decreaseHeightReconstructionArea(){
-	m_reconstructionArea->height = max(m_reconstructionArea->height - 1, 4);
+	m_reconstructionArea->height = max(m_reconstructionArea->height - m_reconstructionAreaOffset, 8);
 }
 
 void WebcamHandler::increaseWidthReconstructionArea(){
-	int width = m_reconstructionArea->width + 1;
+	int width = m_reconstructionArea->width + m_reconstructionAreaOffset;
 	if (m_reconstructionArea->x + width <= m_edgeLength)
 	{
 		m_reconstructionArea->width = width;
@@ -257,5 +257,5 @@ void WebcamHandler::increaseWidthReconstructionArea(){
 }
 
 void WebcamHandler::decreaseWidthReconstructionArea(){
-	m_reconstructionArea->width = max(m_reconstructionArea->width - 1, 4);
+	m_reconstructionArea->width = max(m_reconstructionArea->width - m_reconstructionAreaOffset, 8);
 }

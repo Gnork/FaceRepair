@@ -237,12 +237,22 @@ namespace ProcessingUtils
 		int frameRows = frame->rows;
 		int reconstructionCols = reconstruction->cols;
 		int reconstructionRows = reconstruction->rows;
+		int colOffset = (frameCols - reconstructionCols) / 2 + frameCols;
+		int rowOffset = (frameRows - reconstructionRows) / 2;
 
 		for (int row = 0; row < frameRows; ++row)
 		{
 			for (int col = 0; col < frameCols; ++col)
 			{
 				screen->at<Vec3b>(row, col) = frame->at<Vec3b>(row, col);
+			}
+		}
+
+		for (int row = 0; row < reconstructionRows; ++row)
+		{
+			for (int col = 0; col < reconstructionCols; ++col)
+			{
+				screen->at<Vec3b>(row + rowOffset, col + colOffset) = reconstruction->at<Vec3b>(row, col);
 			}
 		}
 	}

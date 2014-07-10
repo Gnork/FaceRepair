@@ -4,7 +4,8 @@ namespace RBMUtils
 {
 	RBM* initializeRBM(string weightsFile, int threads)
 	{
-		ifstream infile(weightsFile);
+		fstream infile(weightsFile, ios_base::in);
+		cout << "start reading weights file" << endl;
 		string line;
 		int rows, cols;
 		infile >> rows;
@@ -18,6 +19,9 @@ namespace RBMUtils
 		{
 			weights[i++] = val;
 		}
+
+		cout << "end reading weights file" << endl;
+		infile.close();
 
 		return new RBM(weights, rows, cols, threads);
 	}
