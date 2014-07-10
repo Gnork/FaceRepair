@@ -9,18 +9,25 @@ WebcamHandler::WebcamHandler(int frameWidth, int frameHeight, int edgeLength, in
 	m_faceAreaOffset = facePositionOffset;
 	m_frameWidth = frameWidth;
 	m_frameHeight = frameHeight;
+	
+	m_webcamWidth = frameWidth / 2;
+	m_webcamHeight = m_frameHeight;
 
-	int fpHeight = max(m_edgeLength, m_frameHeight / 2);
-	int fpWidth = fpHeight;
-	int fpX = (m_frameWidth - fpWidth) / 2;
-	int fpY = (m_frameHeight - fpHeight) / 2;
-	m_faceArea = new Rect(fpX, fpY, fpWidth, fpHeight);
+	int faHeight = max(m_edgeLength, m_frameWidth / 2);
+	int faWidth = faHeight;
+	int faX = (m_frameWidth - faWidth) / 2;
+	int faY = (m_frameHeight - faHeight) / 2;
+	m_faceArea = new Rect(faX, faY, faWidth, faHeight);
 
 	m_reconstructionArea = new Rect(0, 0, edgeLength / 2, edgeLength);
+	
 	m_drawableReconstructionArea = new Rect();
 	scaleAndPositionReconstructionArea(m_reconstructionArea, m_faceArea, m_drawableReconstructionArea, m_edgeLength);
 
-	m_rbm1 = initializeRBM("weights/WildFaces_64x64_rgb_1kh_27380it.out", threads);
+	m_scaledReconstructionArea = new Rect();
+	scaleReconstructionArea(m_reconstructionArea, m_faceArea, m_scaledReconstructionArea, m_edgeLength);
+
+	m_rbm1 = initializeRBM("C:\\Users\\christoph\\git\\FaceRepair\\FaceRepair\\weights\\WildFaces_64x64_rgb_1kh_27380it.out", threads);
 }
 
 
@@ -29,6 +36,8 @@ WebcamHandler::~WebcamHandler()
 	delete m_faceArea;
 	delete m_reconstructionArea;
 	delete m_drawableReconstructionArea;
+	delete m_scaledReconstructionArea;
+	delete m_rbm1;
 }
 
 void WebcamHandler::run()
@@ -39,10 +48,12 @@ void WebcamHandler::run()
 	cap.set(CV_CAP_PROP_FRAME_HEIGHT, m_frameHeight);
 
 	// initialize windows
-	namedWindow("Original", CV_WINDOW_AUTOSIZE); 
+	namedWindow("Original", CV_WINDOW_AUTOSIZE);
 	namedWindow("Reconstruction", CV_WINDOW_AUTOSIZE);
 
-	float* data;
+	//namedWindow("FaceRepair", CV_WINDOW_NORMAL);
+	//cvSetWindowProperty("Original", CV_WND_PROP_FULLSCREEN, CV_WINDOW_FULLSCREEN);
+
 	float* hidden;
 	float* visible;
 
@@ -74,33 +85,53 @@ void WebcamHandler::run()
 		setRgbMeanInReconstructionArea(&scaledSubimage, m_reconstructionArea, &rgb);
 
 		// subimage to normalized float array
-		data = matToNormalizedFloatArrayWithBias(&scaledSubimage);
+		visible = matToNormalizedFloatArrayWithBias(&scaledSubimage);
 
 		// process rbm
-		hidden = m_rbm1->runHidden(data, scaledSubimage.rows);
-		visible = m_rbm1->runVisible(hidden, scaledSubimage.rows);
+		int epochs = 5;
+
+		for (int i = 0; i < epochs - 1; ++i)
+		{
+			hidden = m_rbm1->runHidden(visible, 1);
+			delete visible;
+			hidden[0] = 1;
+			visible = m_rbm1->runVisible(hidden, 1);
+			delete hidden;
+			visible[0] = 1;
+			resetPreservedArea(&scaledSubimage, m_reconstructionArea, visible);
+		}
+
+		hidden = m_rbm1->runHidden(visible, 1);
+		delete visible;
+		hidden[0] = 1;
+		visible = m_rbm1->runVisible(hidden, 1);
+		delete hidden;
+		
 
 		// normalized float array to subimage
 		normalizedFloatArrayToMatWithoutBias(&scaledSubimage, visible);
 
 		// scale to original faceArea size
+		Mat result;
 		size = Size(m_faceArea->width, m_faceArea->height);
-		resize(scaledSubimage, subimage, size, 0.0, 0.0, INTER_CUBIC);
+		resize(scaledSubimage, result, size, 0.0, 0.0, INTER_CUBIC);
+
+		// reset pixels of preserved area in native resolution
+		resetScaledPreservedArea(&result, m_scaledReconstructionArea, &subimage);
 
 		// draw rects at faceArea and reconstructionArea
 		rectangle(frame, *m_faceArea, Scalar(0, 255, 0), 1, 8, 0);
 		rectangle(frame, *m_drawableReconstructionArea, Scalar(0, 0, 255), 1, 8, 0);
 
+		//Mat screen = Mat(m_frameWidth, m_frameHeight, CV_8UC3, Scalar(0, 0, 0));
+		//makeSplitscreen(&screen, &frame, &result);
+
 		// show images
 		imshow("Original", frame);
-		imshow("Reconstruction", subimage);
+		imshow("Reconstruction", result);
 
 		// check keyboard input
 		checkKeys();
-
-		delete hidden;
-		delete visible;
-		delete data;
 	}
 	// terminate webcam
 	cap.release();
@@ -150,6 +181,7 @@ void WebcamHandler::checkKeys()
 	}
 
 	scaleAndPositionReconstructionArea(m_reconstructionArea, m_faceArea, m_drawableReconstructionArea, m_edgeLength);
+	scaleReconstructionArea(m_reconstructionArea, m_faceArea, m_scaledReconstructionArea, m_edgeLength);
 }
 
 void WebcamHandler::moveLeftFacePosition()

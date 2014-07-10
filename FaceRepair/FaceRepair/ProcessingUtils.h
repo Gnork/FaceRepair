@@ -9,9 +9,13 @@ using namespace std;
 
 namespace ProcessingUtils
 {
-	void scaleAndPositionReconstructionArea(Rect* reconstructionArea, Rect* facePosition, Rect* output, int edgeLength);
-	Vec3b calcRgbMeanOfPreservedArea(Mat* scaledSubimage, Rect* reconstructionArea);
-	void setRgbMeanInReconstructionArea(Mat* scaledSubimage, Rect* reconstructionArea, Vec3b* rgb);
-	float* matToNormalizedFloatArrayWithBias(Mat* image);
-	void normalizedFloatArrayToMatWithoutBias(Mat* image, float* input);
+	void scaleAndPositionReconstructionArea(Rect*, Rect*, Rect*, int);
+	Vec3b calcRgbMeanOfPreservedArea(Mat*, Rect*);
+	void setRgbMeanInReconstructionArea(Mat*, Rect*, Vec3b*);
+	float* matToNormalizedFloatArrayWithBias(Mat*);
+	void normalizedFloatArrayToMatWithoutBias(Mat*, float*);
+	void resetPreservedArea(Mat*, Rect*, float*);
+	void scaleReconstructionArea(Rect*, Rect*, Rect*, int);
+	void resetScaledPreservedArea(Mat*, Rect*, Mat*);
+	void makeSplitscreen(Mat*, Mat*, Mat*);
 }

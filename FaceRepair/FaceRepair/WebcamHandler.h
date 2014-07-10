@@ -15,7 +15,7 @@ using namespace RBMUtils;
 class WebcamHandler
 {
 public:
-	WebcamHandler(int frameWidth, int frameHeight, int edgeLength, int facePositionOffset, int threads);
+	WebcamHandler(int, int, int, int, int);
 	~WebcamHandler();
 	void run();	
 
@@ -27,8 +27,11 @@ private:
 	int m_frameHeight;
 	int m_faceAreaOffset;
 	int m_edgeLength;
+	int m_webcamWidth;
+	int m_webcamHeight;
 	Rect* m_faceArea;
 	Rect* m_reconstructionArea;
+	Rect* m_scaledReconstructionArea;
 	Rect* m_drawableReconstructionArea;
 
 	RBM* m_rbm1;

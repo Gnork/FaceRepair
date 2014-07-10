@@ -86,8 +86,9 @@ public:
 	{
 		float* hidden = new float[dataRows * weightsCols];
 
-		mmul(dataWithBias, dataRows, visibleCols, weights, weightsCols, hidden);
+		mmul(dataWithBias, dataRows, visibleCols, weights, weightsCols, hidden);	
 		applyLogistic(hidden, dataRows * weightsCols);
+
 		return hidden;
 	}
 
