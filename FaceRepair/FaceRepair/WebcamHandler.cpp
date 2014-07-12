@@ -20,7 +20,8 @@ WebcamHandler::WebcamHandler(int frameWidth, int frameHeight, int edgeLength, in
 
 	m_faceArea = new Rect(faX, faY, faWidth, faHeight);
 
-	m_rbm1 = initializeRBM("C:\\Users\\christoph\\git\\FaceRepair\\FaceRepair\\weights\\1500hidden_30000it_TE12,624_CVE14,557.out", threads);
+	m_rbm1 = initializeRBM("C:\\Users\\christoph\\git\\FaceRepair\\FaceRepair\\weights\\WildFaces_64x64_rgb_1,5kh_30000it.out", threads);
+	m_rbm2 = initializeRBM("C:\\Users\\christoph\\git\\FaceRepair\\FaceRepair\\weights\\WildFaces_64x64_rgb_2kh_10440it.out", threads);
 }
 
 
@@ -87,10 +88,8 @@ void WebcamHandler::run()
 		// subimage to normalized float array
 		visible = matToNormalizedFloatArrayWithBias(&scaledSubimage);
 
-		// process rbm
-		int epochs = 4;
-
-		for (int i = 0; i < epochs; ++i)
+		// process RBMs
+		for (int i = 0; i < 5; ++i)
 		{
 			hidden = m_rbm1->runHidden(visible, 1);
 			delete visible;
@@ -100,7 +99,17 @@ void WebcamHandler::run()
 			visible[0] = 1;
 			resetPreservedArea(&scaledSubimage, &invertedScaledMask, visible);
 		}
-		
+
+		for (int i = 0; i < 1; ++i)
+		{
+			hidden = m_rbm2->runHidden(visible, 1);
+			delete visible;
+			hidden[0] = 1;
+			visible = m_rbm2->runVisible(hidden, 1);
+			delete hidden;
+			visible[0] = 1;
+			resetPreservedArea(&scaledSubimage, &invertedScaledMask, visible);
+		}
 
 		// normalized float array to subimage
 		normalizedFloatArrayToMatWithoutBias(visible, &scaledSubimage);

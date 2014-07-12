@@ -32,6 +32,7 @@ private:
 	Scalar* m_detectionColorMax;
 
 	RBM* m_rbm1;
+	RBM* m_rbm2;
 
 	void checkKeys();
 

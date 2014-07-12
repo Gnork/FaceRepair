@@ -108,42 +108,4 @@ namespace ProcessingUtils
 			}
 		}
 	}
-
-	void resetScaledPreservedArea(Mat* dst, Rect* area, Mat* src)
-	{
-		int width = area->width;
-		int height = area->height;
-
-		int x1 = area->x;
-		int y1 = area->y;
-		int x2 = x1 + width;
-		int y2 = y1 + height;
-
-		int cols = dst->cols;
-		int rows = dst->rows;
-
-		for (int row = 0; row < rows; ++row)
-		{
-			for (int col = 0; col < x1; ++col)
-			{
-				dst->at<Vec3b>(row, col) = src->at<Vec3b>(row, col);
-			}
-			for (int col = x2; col < cols; ++col)
-			{
-				dst->at<Vec3b>(row, col) = src->at<Vec3b>(row, col);
-			}
-		}
-
-		for (int col = 0; col < cols; ++col)
-		{
-			for (int row = 0; row < y1; ++row)
-			{
-				dst->at<Vec3b>(row, col) = src->at<Vec3b>(row, col);
-			}
-			for (int row = y2; row < rows; ++row)
-			{
-				dst->at<Vec3b>(row, col) = src->at<Vec3b>(row, col);
-			}
-		}
-	}
 }

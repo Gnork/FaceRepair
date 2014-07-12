@@ -9,8 +9,8 @@ using namespace std;
 
 namespace ProcessingUtils
 {
-	float* matToNormalizedFloatArrayWithBias(Mat*);
-	void normalizedFloatArrayToMatWithoutBias(float*, Mat*);
-	void resetPreservedArea(Mat*, Mat*, float*);
+	float* matToNormalizedFloatArrayWithBias(Mat* src);
+	void normalizedFloatArrayToMatWithoutBias(float* src, Mat* dst);
+	void resetPreservedArea(Mat* image, Mat* mask, float* visible);
 	void printDetectionColor(Mat* src);
 }
