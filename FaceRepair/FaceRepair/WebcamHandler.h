@@ -21,20 +21,15 @@ public:
 
 private:
 	bool m_loop;
-	bool m_processing;
 
 	int m_frameWidth;
 	int m_frameHeight;
 	int m_faceAreaOffset;
-	int m_reconstructionAreaOffset;
 	int m_edgeLength;
-	int m_webcamWidth;
-	int m_webcamHeight;
 	Rect* m_faceArea;
-	Rect* m_reconstructionArea;
-	Rect* m_scaledReconstructionArea;
-	Rect* m_drawableReconstructionArea;
-	Rect* m_cropArea;
+
+	Scalar* m_detectionColorMin;
+	Scalar* m_detectionColorMax;
 
 	RBM* m_rbm1;
 
@@ -46,14 +41,5 @@ private:
 	void moveDownFacePosition();
 	void decreaseFaceSize();
 	void increaseFaceSize();
-
-	void moveLeftReconstructionArea();
-	void moveUpReconstructionArea();
-	void moveRightReconstructionArea();
-	void moveDownReconstructionArea();
-	void increaseHeightReconstructionArea();
-	void decreaseHeightReconstructionArea();
-	void increaseWidthReconstructionArea();
-	void decreaseWidthReconstructionArea();
 };
 
