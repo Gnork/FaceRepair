@@ -37,8 +37,8 @@ void WebcamHandler::run()
 	cap.set(CV_CAP_PROP_FRAME_WIDTH, m_frameWidth);
 	cap.set(CV_CAP_PROP_FRAME_HEIGHT, m_frameHeight);
 
-	m_rbm1 = initializeRBM("C:\\Users\\christoph\\git\\FaceRepair\\FaceRepair\\weights\\WildFaces_64x64_rgb_1,5kh_104000it.out", m_threads);
-	m_rbm2 = initializeRBM("C:\\Users\\christoph\\git\\FaceRepair\\FaceRepair\\weights\\WildFaces_64x64_rgb_2kh_10440it.out", m_threads);
+	m_rbm1 = initializeRBM("weights\\WildFaces_64x64_rgb_1,5kh_104000it.out", m_threads);
+	m_rbm2 = initializeRBM("weights\\WildFaces_64x64_rgb_2kh_10440it.out", m_threads);
 
 	// initialize window
 	namedWindow("Settings", CV_WINDOW_AUTOSIZE);
