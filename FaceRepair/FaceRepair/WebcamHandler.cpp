@@ -9,8 +9,9 @@ WebcamHandler::WebcamHandler(int frameWidth, int frameHeight, int edgeLength, in
 	m_edgeLength = edgeLength;
 	m_frameWidth = frameWidth;
 	m_frameHeight = frameHeight;
+	m_threads = threads;
 
-	m_detectionColorMin = new Scalar(48, 55, 55);
+	m_detectionColorMin = new Scalar(48, 10, 60);
 	m_detectionColorMax = new Scalar(78, 255, 255);
 
 	int faHeight = max(m_edgeLength, m_frameHeight / 2);
@@ -18,17 +19,15 @@ WebcamHandler::WebcamHandler(int frameWidth, int frameHeight, int edgeLength, in
 	int faX = (m_frameWidth - faWidth) / 2;
 	int faY = (m_frameHeight - faHeight) / 2;
 
-	m_faceArea = new Rect(faX, faY, faWidth, faHeight);
-
-	m_rbm1 = initializeRBM("C:\\Users\\christoph\\git\\FaceRepair\\FaceRepair\\weights\\WildFaces_64x64_rgb_1,5kh_30000it.out", threads);
-	m_rbm2 = initializeRBM("C:\\Users\\christoph\\git\\FaceRepair\\FaceRepair\\weights\\WildFaces_64x64_rgb_2kh_10440it.out", threads);
+	m_faceArea = new Rect(faX, faY, faWidth, faHeight);	
 }
 
 
 WebcamHandler::~WebcamHandler()
 {
 	delete m_faceArea;
-	delete m_rbm1;
+	delete m_detectionColorMin;
+	delete m_detectionColorMax;
 }
 
 void WebcamHandler::run()
@@ -38,13 +37,16 @@ void WebcamHandler::run()
 	cap.set(CV_CAP_PROP_FRAME_WIDTH, m_frameWidth);
 	cap.set(CV_CAP_PROP_FRAME_HEIGHT, m_frameHeight);
 
+	m_rbm1 = initializeRBM("C:\\Users\\christoph\\git\\FaceRepair\\FaceRepair\\weights\\WildFaces_64x64_rgb_1,5kh_104000it.out", m_threads);
+	m_rbm2 = initializeRBM("C:\\Users\\christoph\\git\\FaceRepair\\FaceRepair\\weights\\WildFaces_64x64_rgb_2kh_10440it.out", m_threads);
+
 	// initialize window
 	namedWindow("Settings", CV_WINDOW_AUTOSIZE);
-	namedWindow("Face", CV_WINDOW_AUTOSIZE);
-	namedWindow("Repair", CV_WINDOW_AUTOSIZE);
+	namedWindow("FaceRepair", CV_WINDOW_NORMAL);
+	cvSetWindowProperty("FaceRepair", CV_WND_PROP_FULLSCREEN, CV_WINDOW_FULLSCREEN);
 
-	//namedWindow("FaceRepair", CV_WINDOW_NORMAL);
-	//cvSetWindowProperty("FaceRepair", CV_WND_PROP_FULLSCREEN, CV_WINDOW_FULLSCREEN);
+	//namedWindow("Face", CV_WINDOW_AUTOSIZE);
+	//namedWindow("Repair", CV_WINDOW_AUTOSIZE);
 
 	float* hidden;
 	float* visible;
@@ -89,7 +91,7 @@ void WebcamHandler::run()
 		visible = matToNormalizedFloatArrayWithBias(&scaledSubimage);
 
 		// process RBMs
-		for (int i = 0; i < 5; ++i)
+		for (int i = 0; i < 4; ++i)
 		{
 			hidden = m_rbm1->runHidden(visible, 1);
 			delete visible;
@@ -124,17 +126,25 @@ void WebcamHandler::run()
 
 		// paint visualizations to frame
 		frame(*m_faceArea).setTo(Scalar(0, 0, 255), mask);
+		Mat vis;
+		frame(*m_faceArea).copyTo(vis);
+		Mat fs = fullscreen(&subimage, &vis, &result, 32);
 		rectangle(frame, *m_faceArea, Scalar(0, 255, 0), 1, 8, 0);
 
+		// show frames
 		imshow("Settings", frame);
-		imshow("Face", subimage);
-		imshow("Repair", result);
+		imshow("FaceRepair", fs);
 
+		//imshow("Face", subimage);
+		//imshow("Repair", result);
+		
 		// check keyboard input
 		checkKeys();
 	}
 	// terminate webcam
 	cap.release();
+	delete m_rbm1;
+	delete m_rbm2;
 }
 
 void WebcamHandler::checkKeys()

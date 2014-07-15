@@ -2,6 +2,21 @@
 
 namespace ProcessingUtils
 {
+	Mat fullscreen(Mat* src1, Mat* src2, Mat* src3, int pixelSpacer)
+	{
+		int edgeLength = src1->cols;
+		int totalWidth = 3 * edgeLength + 2 * pixelSpacer;
+		int totalHeight = (int)(totalWidth / 16.0 * 9.0);
+		int yOffset = (totalHeight - edgeLength) / 2;
+
+		Mat screen = Mat(totalHeight, totalWidth, CV_8UC3, Scalar(0, 0, 0));
+		src1->copyTo(screen(Rect(0, yOffset, edgeLength, edgeLength)));
+		src2->copyTo(screen(Rect(edgeLength + pixelSpacer, yOffset, edgeLength, edgeLength)));
+		src3->copyTo(screen(Rect(edgeLength * 2 + pixelSpacer * 2, yOffset, edgeLength, edgeLength)));
+
+		return screen;
+	}
+
 	void printDetectionColor(Mat* src)
 	{
 		int size = 64;

@@ -9,6 +9,7 @@ using namespace std;
 
 namespace ProcessingUtils
 {
+	Mat fullscreen(Mat* src1, Mat* src2, Mat* src3, int pixelSpacer);
 	float* matToNormalizedFloatArrayWithBias(Mat* src);
 	void normalizedFloatArrayToMatWithoutBias(float* src, Mat* dst);
 	void resetPreservedArea(Mat* image, Mat* mask, float* visible);

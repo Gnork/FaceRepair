@@ -26,6 +26,7 @@ private:
 	int m_frameHeight;
 	int m_faceAreaOffset;
 	int m_edgeLength;
+	int m_threads;
 	Rect* m_faceArea;
 
 	Scalar* m_detectionColorMin;
