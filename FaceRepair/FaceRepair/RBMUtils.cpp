@@ -25,4 +25,22 @@ namespace RBMUtils
 
 		return new RBM(weights, rows, cols, threads);
 	}
+
+	RBM* initializeRBM(string sizeFile, string binFile, int threads)
+	{
+		fstream infile(sizeFile, ios_base::in);
+		string line;
+		int rows, cols;
+		infile >> rows;
+		infile >> cols;
+		infile.close();
+
+		int len = rows * cols;
+		float* weights = new float[len]();
+		ifstream testfile(binFile, ios::in | ios::binary);
+		testfile.read((char*)weights, sizeof(float)*len);
+		infile.close();
+
+		return new RBM(weights, rows, cols, threads);
+	}
 }

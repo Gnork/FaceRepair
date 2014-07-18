@@ -3,6 +3,7 @@
 WebcamHandler::WebcamHandler(int frameWidth, int frameHeight, int edgeLength, int threads)
 {
 	m_loop = true;
+	m_action = true;
 
 	m_faceAreaOffset = 8;
 
@@ -19,7 +20,11 @@ WebcamHandler::WebcamHandler(int frameWidth, int frameHeight, int edgeLength, in
 	int faX = (m_frameWidth - faWidth) / 2;
 	int faY = (m_frameHeight - faHeight) / 2;
 
-	m_faceArea = new Rect(faX, faY, faWidth, faHeight);	
+	m_faceArea = new Rect(faX, faY, faWidth, faHeight);
+	
+	m_rbm1000 = initializeRBM("weights\\WildFaces_64x64_rgb_1kh_58380it.out", "weights\\WildFaces_64x64_rgb_1kh_58380it.bin", m_threads);
+	m_rbm1500 = initializeRBM("weights\\WildFaces_64x64_rgb_1,5kh_104000it.out", "weights\\WildFaces_64x64_rgb_1,5kh_104000it.bin", m_threads);
+	m_rbm2000 = initializeRBM("weights\\WildFaces_64x64_rgb_2kh_10440it.out", "weights\\WildFaces_64x64_rgb_2kh_10440it.bin", m_threads);
 }
 
 
@@ -28,25 +33,23 @@ WebcamHandler::~WebcamHandler()
 	delete m_faceArea;
 	delete m_detectionColorMin;
 	delete m_detectionColorMax;
+	delete m_rbm1000;
+	delete m_rbm1500;
+	delete m_rbm2000;
 }
 
 void WebcamHandler::run()
 {
+
 	// initialize webcam
 	VideoCapture cap = VideoCapture(0);
 	cap.set(CV_CAP_PROP_FRAME_WIDTH, m_frameWidth);
-	cap.set(CV_CAP_PROP_FRAME_HEIGHT, m_frameHeight);
-
-	m_rbm1 = initializeRBM("weights\\WildFaces_64x64_rgb_1,5kh_104000it.out", m_threads);
-	m_rbm2 = initializeRBM("weights\\WildFaces_64x64_rgb_2kh_10440it.out", m_threads);
+	cap.set(CV_CAP_PROP_FRAME_HEIGHT, m_frameHeight);	
 
 	// initialize window
 	namedWindow("Settings", CV_WINDOW_AUTOSIZE);
 	namedWindow("FaceRepair", CV_WINDOW_NORMAL);
 	cvSetWindowProperty("FaceRepair", CV_WND_PROP_FULLSCREEN, CV_WINDOW_FULLSCREEN);
-
-	//namedWindow("Face", CV_WINDOW_AUTOSIZE);
-	//namedWindow("Repair", CV_WINDOW_AUTOSIZE);
 
 	float* hidden;
 	float* visible;
@@ -91,26 +94,39 @@ void WebcamHandler::run()
 		visible = matToNormalizedFloatArrayWithBias(&scaledSubimage);
 
 		// process RBMs
-		for (int i = 0; i < 4; ++i)
+		if (m_action)
 		{
-			hidden = m_rbm1->runHidden(visible, 1);
-			delete visible;
-			hidden[0] = 1;
-			visible = m_rbm1->runVisible(hidden, 1);
-			delete hidden;
-			visible[0] = 1;
-			resetPreservedArea(&scaledSubimage, &invertedScaledMask, visible);
-		}
+			for (int i = 0; i < 1; ++i)
+			{
+				hidden = m_rbm1000->runHidden(visible, 1);
+				delete visible;
+				hidden[0] = 1;
+				visible = m_rbm1000->runVisible(hidden, 1);
+				delete hidden;
+				visible[0] = 1;
+				resetPreservedArea(&scaledSubimage, &invertedScaledMask, visible);
+			}
 
-		for (int i = 0; i < 1; ++i)
-		{
-			hidden = m_rbm2->runHidden(visible, 1);
-			delete visible;
-			hidden[0] = 1;
-			visible = m_rbm2->runVisible(hidden, 1);
-			delete hidden;
-			visible[0] = 1;
-			resetPreservedArea(&scaledSubimage, &invertedScaledMask, visible);
+			for (int i = 0; i < 1; ++i)
+			{
+				hidden = m_rbm1500->runHidden(visible, 1);
+				delete visible;
+				hidden[0] = 1;
+				visible = m_rbm1500->runVisible(hidden, 1);
+				delete hidden;
+				visible[0] = 1;
+				resetPreservedArea(&scaledSubimage, &invertedScaledMask, visible);
+			}
+			for (int i = 0; i < 1; ++i)
+			{
+				hidden = m_rbm2000->runHidden(visible, 1);
+				delete visible;
+				hidden[0] = 1;
+				visible = m_rbm2000->runVisible(hidden, 1);
+				delete hidden;
+				visible[0] = 1;
+				resetPreservedArea(&scaledSubimage, &invertedScaledMask, visible);
+			}
 		}
 
 		// normalized float array to subimage
@@ -125,31 +141,26 @@ void WebcamHandler::run()
 		subimage.copyTo(result, invertedMask);
 
 		// paint visualizations to frame
-		frame(*m_faceArea).setTo(Scalar(0, 0, 255), mask);
-		Mat vis;
-		frame(*m_faceArea).copyTo(vis);
-		Mat fs = fullscreen(&subimage, &vis, &result, 32);
+		Mat fs;
+		frame.copyTo(fs);
+		result.copyTo(fs(*m_faceArea));
+		//flip(fs, fs, 1);
 		rectangle(frame, *m_faceArea, Scalar(0, 255, 0), 1, 8, 0);
 
 		// show frames
 		imshow("Settings", frame);
 		imshow("FaceRepair", fs);
-
-		//imshow("Face", subimage);
-		//imshow("Repair", result);
 		
 		// check keyboard input
 		checkKeys();
 	}
 	// terminate webcam
 	cap.release();
-	delete m_rbm1;
-	delete m_rbm2;
 }
 
 void WebcamHandler::checkKeys()
 {
-	int key = cvWaitKey(1);
+	int key = cvWaitKey(30);
 	if (key == -1) return;
 	
 	cout << key << endl;

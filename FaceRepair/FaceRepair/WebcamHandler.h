@@ -6,6 +6,8 @@
 #include "RBMUtils.h"
 #include "opencv2\opencv.hpp"
 #include "RBM.h"
+#include <chrono>
+#include <thread>
 
 using namespace std;
 using namespace cv;
@@ -21,6 +23,7 @@ public:
 
 private:
 	bool m_loop;
+	bool m_action;
 
 	int m_frameWidth;
 	int m_frameHeight;
@@ -32,8 +35,9 @@ private:
 	Scalar* m_detectionColorMin;
 	Scalar* m_detectionColorMax;
 
-	RBM* m_rbm1;
-	RBM* m_rbm2;
+	RBM* m_rbm1000;
+	RBM* m_rbm1500;
+	RBM* m_rbm2000;
 
 	void checkKeys();
 
