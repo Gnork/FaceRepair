@@ -61,11 +61,7 @@ void WebcamHandler::run()
 		// read frame and continue with next frame if not successfull
 		Mat frame;
 		cap.retrieve(frame);
-
-		// mirror
 		flip(frame, frame, 1);
-
-		// 
 
 		// take subimage at faceArea
 		Mat subimage;
@@ -98,40 +94,27 @@ void WebcamHandler::run()
 		visible = matToNormalizedFloatArrayWithBias(&scaledSubimage);
 
 		// process RBMs
-		if (m_action)
-		{
-			for (int i = 0; i < 1; ++i)
-			{
-				hidden = m_rbm1000->runHidden(visible, 1);
-				delete visible;
-				hidden[0] = 1;
-				visible = m_rbm1000->runVisible(hidden, 1);
-				delete hidden;
-				visible[0] = 1;
-				resetPreservedArea(&scaledSubimage, &invertedScaledMask, visible);
-			}
+		hidden = m_rbm1000->runHidden(visible, 1);
+		delete visible;
+		hidden[0] = 1;
+		visible = m_rbm1000->runVisible(hidden, 1);
+		delete hidden;
+		visible[0] = 1;
+		resetPreservedArea(&scaledSubimage, &invertedScaledMask, visible);
 
-			for (int i = 0; i < 1; ++i)
-			{
-				hidden = m_rbm1500->runHidden(visible, 1);
-				delete visible;
-				hidden[0] = 1;
-				visible = m_rbm1500->runVisible(hidden, 1);
-				delete hidden;
-				visible[0] = 1;
-				resetPreservedArea(&scaledSubimage, &invertedScaledMask, visible);
-			}
-			for (int i = 0; i < 1; ++i)
-			{
-				hidden = m_rbm2000->runHidden(visible, 1);
-				delete visible;
-				hidden[0] = 1;
-				visible = m_rbm2000->runVisible(hidden, 1);
-				delete hidden;
-				visible[0] = 1;
-				resetPreservedArea(&scaledSubimage, &invertedScaledMask, visible);
-			}
-		}
+		hidden = m_rbm1500->runHidden(visible, 1);
+		delete visible;
+		hidden[0] = 1;
+		visible = m_rbm1500->runVisible(hidden, 1);
+		delete hidden;
+		visible[0] = 1;
+		resetPreservedArea(&scaledSubimage, &invertedScaledMask, visible);
+
+		hidden = m_rbm2000->runHidden(visible, 1);
+		delete visible;
+		hidden[0] = 1;
+		visible = m_rbm2000->runVisible(hidden, 1);
+		delete hidden;
 
 		// normalized float array to subimage
 		normalizedFloatArrayToMatWithoutBias(visible, &scaledSubimage);
@@ -144,12 +127,16 @@ void WebcamHandler::run()
 		// reset pixels of preserved area in native resolution
 		subimage.copyTo(result, invertedMask);
 
-		// paint visualizations to frame
+		// create fullscreen image
 		Mat fs;
 		frame.copyTo(fs);
 		result.copyTo(fs(*m_faceArea));
-		//flip(fs, fs, 1);
+		flip(fs, fs, 1);
+		
+		// maybe not necessary
 		result.copyTo(frame(*m_faceArea));
+		
+		// paint visualizations for settings image
 		rectangle(frame, *m_faceArea, Scalar(0, 255, 0), 1, 8, 0);
 
 		// show frames
