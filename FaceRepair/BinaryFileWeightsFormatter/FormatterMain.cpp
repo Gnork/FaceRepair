@@ -7,7 +7,7 @@ int main()
 {
 
 	cout << "reading weights file" << endl;
-	fstream infile("weights\\WildFaces_64x64_rgb_2kh_10440it.out", ios_base::in);
+	fstream infile("weights\\WildFaces_64x64_rgb_2kh_25000it.out", ios_base::in);
 	if (!infile)
 	{
 		cout << "Cannot open infile.";
@@ -40,7 +40,7 @@ int main()
 
 
 	cout << "start writing bin file" << endl;
-	ofstream outfile("weights\\WildFaces_64x64_rgb_2kh_10440it.bin", ios::out | ios::binary);
+	ofstream outfile("weights\\WildFaces_64x64_rgb_2kh_25000it.bin", ios::out | ios::binary);
 	outfile.write((char *)weights, sizeof(float) * len);
 	outfile.close();
 	cout << "end writing bin file" << endl;

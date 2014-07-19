@@ -1,16 +1,15 @@
 #include "WebcamHandler.h"
 
-WebcamHandler::WebcamHandler(int frameWidth, int frameHeight, int edgeLength, int threads)
+WebcamHandler::WebcamHandler()
 {
-	m_loop = true;
-	m_action = true;
-
+	m_edgeLength = 64;
+	m_frameWidth = 1280;
+	m_frameHeight = 720;
+	m_threads = 8;
 	m_faceAreaOffset = 8;
 
-	m_edgeLength = edgeLength;
-	m_frameWidth = frameWidth;
-	m_frameHeight = frameHeight;
-	m_threads = threads;
+	m_loop = true;
+	m_action = true;
 
 	m_detectionColorMin = new Scalar(48, 10, 60);
 	m_detectionColorMax = new Scalar(78, 255, 255);
@@ -24,7 +23,7 @@ WebcamHandler::WebcamHandler(int frameWidth, int frameHeight, int edgeLength, in
 	
 	m_rbm1000 = initializeRBM("weights\\WildFaces_64x64_rgb_1kh_58380it.out", "weights\\WildFaces_64x64_rgb_1kh_58380it.bin", m_threads);
 	m_rbm1500 = initializeRBM("weights\\WildFaces_64x64_rgb_1,5kh_104000it.out", "weights\\WildFaces_64x64_rgb_1,5kh_104000it.bin", m_threads);
-	m_rbm2000 = initializeRBM("weights\\WildFaces_64x64_rgb_2kh_10440it.out", "weights\\WildFaces_64x64_rgb_2kh_10440it.bin", m_threads);
+	m_rbm2000 = initializeRBM("weights\\WildFaces_64x64_rgb_2kh_25000it.out", "weights\\WildFaces_64x64_rgb_2kh_25000it.bin", m_threads);
 }
 
 
@@ -48,8 +47,11 @@ void WebcamHandler::run()
 
 	// initialize window
 	namedWindow("Settings", CV_WINDOW_AUTOSIZE);
-	namedWindow("FaceRepair", CV_WINDOW_NORMAL);
-	cvSetWindowProperty("FaceRepair", CV_WND_PROP_FULLSCREEN, CV_WINDOW_FULLSCREEN);
+	//namedWindow("FaceRepair", CV_WINDOW_NORMAL);
+	//cvSetWindowProperty("FaceRepair", CV_WND_PROP_FULLSCREEN, CV_WINDOW_FULLSCREEN);
+
+	CascadeClassifier classy;
+	classy.load("haarcascade_frontalface_alt.xml");
 
 	float* hidden;
 	float* visible;
@@ -62,6 +64,8 @@ void WebcamHandler::run()
 
 		// mirror
 		flip(frame, frame, 1);
+
+		// 
 
 		// take subimage at faceArea
 		Mat subimage;
@@ -145,11 +149,12 @@ void WebcamHandler::run()
 		frame.copyTo(fs);
 		result.copyTo(fs(*m_faceArea));
 		//flip(fs, fs, 1);
+		result.copyTo(frame(*m_faceArea));
 		rectangle(frame, *m_faceArea, Scalar(0, 255, 0), 1, 8, 0);
 
 		// show frames
 		imshow("Settings", frame);
-		imshow("FaceRepair", fs);
+		//imshow("FaceRepair", fs);
 		
 		// check keyboard input
 		checkKeys();

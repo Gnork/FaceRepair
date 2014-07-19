@@ -17,7 +17,7 @@ using namespace RBMUtils;
 class WebcamHandler
 {
 public:
-	WebcamHandler(int, int, int, int);
+	WebcamHandler();
 	~WebcamHandler();
 	void run();	
 
@@ -31,6 +31,7 @@ private:
 	int m_edgeLength;
 	int m_threads;
 	Rect* m_faceArea;
+	Rect* m_classifierArea;
 
 	Scalar* m_detectionColorMin;
 	Scalar* m_detectionColorMax;
