@@ -6,7 +6,10 @@ WebcamHandler::WebcamHandler()
 	m_frameWidth = 1280;
 	m_frameHeight = 720;
 	m_threads = 8;
-	m_faceAreaOffset = 8;
+	m_faceAreaOffset = 4;
+	m_relativeEyePositionX = 0.25;
+	m_relativeEyePositionY = 0.27;
+
 
 	m_loop = true;
 	m_action = true;
@@ -14,7 +17,7 @@ WebcamHandler::WebcamHandler()
 	m_detectionColorMin = new Scalar(48, 10, 60);
 	m_detectionColorMax = new Scalar(78, 255, 255);
 
-	int faHeight = max(m_edgeLength, m_frameHeight / 2);
+	int faHeight = max(m_edgeLength, m_frameHeight / 4);
 	int faWidth = faHeight;
 	int faX = (m_frameWidth - faWidth) / 2;
 	int faY = (m_frameHeight - faHeight) / 2;
@@ -23,7 +26,7 @@ WebcamHandler::WebcamHandler()
 	
 	m_rbm1000 = initializeRBM("weights\\WildFaces_64x64_rgb_1kh_58380it.out", "weights\\WildFaces_64x64_rgb_1kh_58380it.bin", m_threads);
 	m_rbm1500 = initializeRBM("weights\\WildFaces_64x64_rgb_1,5kh_104000it.out", "weights\\WildFaces_64x64_rgb_1,5kh_104000it.bin", m_threads);
-	m_rbm2000 = initializeRBM("weights\\WildFaces_64x64_rgb_2kh_25000it.out", "weights\\WildFaces_64x64_rgb_2kh_25000it.bin", m_threads);
+	m_rbm2000 = initializeRBM("weights\\WildFaces_64x64_rgb_2kh_10440it.out", "weights\\WildFaces_64x64_rgb_2kh_10440it.bin", m_threads);
 }
 
 
@@ -47,8 +50,8 @@ void WebcamHandler::run()
 
 	// initialize window
 	namedWindow("Settings", CV_WINDOW_AUTOSIZE);
-	//namedWindow("FaceRepair", CV_WINDOW_NORMAL);
-	//cvSetWindowProperty("FaceRepair", CV_WND_PROP_FULLSCREEN, CV_WINDOW_FULLSCREEN);
+	namedWindow("FaceRepair", CV_WINDOW_NORMAL);
+	cvSetWindowProperty("FaceRepair", CV_WND_PROP_FULLSCREEN, CV_WINDOW_FULLSCREEN);
 
 	CascadeClassifier classy;
 	classy.load("haarcascade_frontalface_alt.xml");
@@ -73,7 +76,7 @@ void WebcamHandler::run()
 		Mat mask;
 		inRange(subimageHSV, *m_detectionColorMin, *m_detectionColorMax, mask);
 		erode(mask, mask, getStructuringElement(MORPH_ELLIPSE, Size(5, 5)));
-		dilate(mask, mask, getStructuringElement(MORPH_ELLIPSE, Size(30, 30)));
+		dilate(mask, mask, getStructuringElement(MORPH_ELLIPSE, Size(25, 25)));
 		Mat invertedMask = 255 - mask;
 
 		// scale to rbm input size
@@ -134,14 +137,18 @@ void WebcamHandler::run()
 		flip(fs, fs, 1);
 		
 		// maybe not necessary
-		result.copyTo(frame(*m_faceArea));
+		//result.copyTo(frame(*m_faceArea));
 		
 		// paint visualizations for settings image
-		rectangle(frame, *m_faceArea, Scalar(0, 255, 0), 1, 8, 0);
+		rectangle(frame, *m_faceArea, Scalar(0, 255, 0));
+		Point* eyePositions = calculateEyePositions(m_faceArea, m_relativeEyePositionX, m_relativeEyePositionY);
+		circle(frame, eyePositions[0], 4, Scalar(255, 255, 0));
+		circle(frame, eyePositions[1], 4, Scalar(255, 255, 0));
+		delete eyePositions;
 
 		// show frames
 		imshow("Settings", frame);
-		//imshow("FaceRepair", fs);
+		imshow("FaceRepair", fs);
 		
 		// check keyboard input
 		checkKeys();

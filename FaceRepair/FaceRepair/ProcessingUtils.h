@@ -12,5 +12,6 @@ namespace ProcessingUtils
 	float* matToNormalizedFloatArrayWithBias(Mat* src);
 	void normalizedFloatArrayToMatWithoutBias(float* src, Mat* dst);
 	void resetPreservedArea(Mat* image, Mat* mask, float* visible);
-	void printDetectionColor(Mat* src);
+	Point* calculateEyePositions(Rect* faceArea, float relativeEyePositionX, float relativeEyePositionY);
+	//void printDetectionColor(Mat* src);
 }

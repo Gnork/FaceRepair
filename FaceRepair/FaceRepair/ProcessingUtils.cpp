@@ -2,58 +2,16 @@
 
 namespace ProcessingUtils
 {
-	void detectFace(Rect* faceArea, CascadeClassifier* classifier, Mat* src)
+	Point* calculateEyePositions(Rect* faceArea, float relativeEyePositionX, float relativeEyePositionY)
 	{
-		vector<Rect> faces;
-	}
-
-	void printDetectionColor(Mat* src)
-	{
-		int size = 64;
-
-		int rows = src->rows;
-		int cols = src->cols;
-
-		int h = 0;
-		int s = 0;
-		int v = 0;
-
-		int minH = 255;
-		int minS = 255;
-		int minV = 255;
-
-		int maxH = 0;
-		int maxS = 0;
-		int maxV = 0;
-
-		int len = size * size;
-
-		for (int row = 0; row < size; ++row)
-		{
-			for (int col = 0; col < size; ++col)
-			{
-				Vec3b hsv = src->at<Vec3b>(row, col);
-				h += hsv[0];
-				s += hsv[1];
-				v += hsv[2];
-
-				minH = min(minH, (int)hsv[0]);
-				minS = min(minS, (int)hsv[1]);
-				minV = min(minV, (int)hsv[2]);
-
-				maxH = max(maxH, (int)hsv[0]);
-				maxS = max(maxS, (int)hsv[1]);
-				maxV = max(minV, (int)hsv[2]);
-			}
-		}
-
-		h /= len;
-		s /= len;
-		v /= len;
-
-		cout << " min: " << minH << ", " << minS << ", " << minV << endl;
-		cout << "mean: " << h << ", " << s << ", " << v << endl;
-		cout << " max: " << maxH << ", " << maxS << ", " << maxV << endl;	
+		int leftX = faceArea->width * relativeEyePositionX;
+		int rightX = faceArea->width - leftX + faceArea->x;
+		leftX += faceArea->x;
+		int y = faceArea->height * relativeEyePositionY + faceArea->y;
+		Point* result = new Point[2];
+		result[0] = Point(leftX, y);
+		result[1] = Point(rightX, y);
+		return result;
 	}
 
 	float* matToNormalizedFloatArrayWithBias(Mat* src)
@@ -113,4 +71,55 @@ namespace ProcessingUtils
 			}
 		}
 	}
+
+	/*
+	void printDetectionColor(Mat* src)
+	{
+		int size = 64;
+
+		int rows = src->rows;
+		int cols = src->cols;
+
+		int h = 0;
+		int s = 0;
+		int v = 0;
+
+		int minH = 255;
+		int minS = 255;
+		int minV = 255;
+
+		int maxH = 0;
+		int maxS = 0;
+		int maxV = 0;
+
+		int len = size * size;
+
+		for (int row = 0; row < size; ++row)
+		{
+			for (int col = 0; col < size; ++col)
+			{
+				Vec3b hsv = src->at<Vec3b>(row, col);
+				h += hsv[0];
+				s += hsv[1];
+				v += hsv[2];
+
+				minH = min(minH, (int)hsv[0]);
+				minS = min(minS, (int)hsv[1]);
+				minV = min(minV, (int)hsv[2]);
+
+				maxH = max(maxH, (int)hsv[0]);
+				maxS = max(maxS, (int)hsv[1]);
+				maxV = max(minV, (int)hsv[2]);
+			}
+		}
+
+		h /= len;
+		s /= len;
+		v /= len;
+
+		cout << " min: " << minH << ", " << minS << ", " << minV << endl;
+		cout << "mean: " << h << ", " << s << ", " << v << endl;
+		cout << " max: " << maxH << ", " << maxS << ", " << maxV << endl;
+	}
+	*/
 }

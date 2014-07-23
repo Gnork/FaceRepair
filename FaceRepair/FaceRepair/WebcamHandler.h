@@ -29,9 +29,10 @@ private:
 	int m_frameHeight;
 	int m_faceAreaOffset;
 	int m_edgeLength;
+	float m_relativeEyePositionX;
+	float m_relativeEyePositionY; 
 	int m_threads;
 	Rect* m_faceArea;
-	Rect* m_classifierArea;
 
 	Scalar* m_detectionColorMin;
 	Scalar* m_detectionColorMax;
