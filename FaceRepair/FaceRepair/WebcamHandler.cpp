@@ -7,7 +7,7 @@ WebcamHandler::WebcamHandler()
 	m_frameHeight = 720;
 	m_threads = 8;
 	m_faceAreaOffset = 4;
-	m_relativeEyePositionX = 0.25;
+	m_relativeEyePositionX = 0.27;
 	m_relativeEyePositionY = 0.27;
 
 
@@ -76,7 +76,7 @@ void WebcamHandler::run()
 		Mat mask;
 		inRange(subimageHSV, *m_detectionColorMin, *m_detectionColorMax, mask);
 		erode(mask, mask, getStructuringElement(MORPH_ELLIPSE, Size(5, 5)));
-		dilate(mask, mask, getStructuringElement(MORPH_ELLIPSE, Size(25, 25)));
+		dilate(mask, mask, getStructuringElement(MORPH_ELLIPSE, Size(15, 15)));
 		Mat invertedMask = 255 - mask;
 
 		// scale to rbm input size
