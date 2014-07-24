@@ -53,8 +53,7 @@ void WebcamHandler::run()
 	namedWindow("FaceRepair", CV_WINDOW_NORMAL);
 	cvSetWindowProperty("FaceRepair", CV_WND_PROP_FULLSCREEN, CV_WINDOW_FULLSCREEN);
 
-	CascadeClassifier classy;
-	classy.load("haarcascade_frontalface_alt.xml");
+	cvWaitKey(1000);
 
 	float* hidden;
 	float* visible;
